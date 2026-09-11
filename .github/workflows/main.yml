@@ -1,6 +1,7 @@
 # This is a basic workflow to help you get started with Actions
 
 name: CI
+run-name: "CI ${{ inputs.leg || github.event_name }} ${{ inputs.racecar_run }}"
 
 # Controls when the action will run. Triggers the workflow on push or pull request events
 on:
@@ -9,6 +10,24 @@ on:
   pull_request:
     branches: [ '*' ]
 
+  workflow_dispatch:
+    inputs:
+      leg:
+        description: "baseline (uninstrumented) or instrumented (under chalk/curiosity)"
+        type: choice
+        options: [instrumented, baseline]
+        default: baseline
+      profile:
+        description: "CrashOverride chalk profile"
+        type: string
+        default: curiosity-tests-racecar
+      racecar_run:
+        description: "racecar correlation token, echoed into the run name"
+        type: string
+        default: ""
+
+env:
+  CHALK_ON: ${{ inputs.leg == 'instrumented' }}
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   linters:
@@ -94,4 +113,3 @@ jobs:
 
     - name: pass unit test
       run: npm run ci:test
-
