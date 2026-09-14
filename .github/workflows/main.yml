@@ -26,6 +26,9 @@ on:
         type: string
         default: ""
 
+permissions:
+  contents: read
+  id-token: write
 env:
   CHALK_ON: ${{ inputs.leg == 'instrumented' }}
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -43,11 +46,16 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: crashappsec/action-checkout@main
       with:
+        chalk: ${{ env.CHALK_ON }}
+        profile: ${{ inputs.profile || 'curiosity-tests-racecar' }}
+        lfs: false
         persist-credentials: false
-
-    # https://github.com/actions/setup-node/issues/214 workaround npm i by url
+    - name: Assert instrumentation is live
+      if: env.CHALK_ON == 'true'
+      run: |
+        test -n "${CURIOSITY_ROOT:-}" || { echo "::error::CURIOSITY_ROOT unset - observables never installed"; exit 1; }
     - name: Reconfigure git to use HTTP authentication
       run: >
         git config --global url."https://github.com/".insteadOf
@@ -85,11 +93,16 @@ jobs:
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
     - name: Checkout
-      uses: actions/checkout@v2
+      uses: crashappsec/action-checkout@main
       with:
+        chalk: ${{ env.CHALK_ON }}
+        profile: ${{ inputs.profile || 'curiosity-tests-racecar' }}
+        lfs: false
         persist-credentials: false
-
-    # https://github.com/actions/setup-node/issues/214 workaround npm i by url
+    - name: Assert instrumentation is live
+      if: env.CHALK_ON == 'true'
+      run: |
+        test -n "${CURIOSITY_ROOT:-}" || { echo "::error::CURIOSITY_ROOT unset - observables never installed"; exit 1; }
     - name: Reconfigure git to use HTTP authentication
       run: >
         git config --global url."https://github.com/".insteadOf
